@@ -67,7 +67,52 @@ The app is on <http://localhost:3001>; vite serves the assets on 5173. Port 3001
 Until a client is configured the landing page says so and shows the registration call, rather
 than offering a sign-in button that cannot work.
 
-### Pointing at staging
+If you only want to *show* the demo rather than work on it, skip the toolchain entirely and
+use Compose instead - see below.
+
+## Run it with Compose
+
+The quickest way to show the demo on a machine with no Go or bun on it:
+
+```console
+$ make demo        # build the image and start it
+$ make demo-logs   # follow it
+$ make demo-down   # stop and remove it
+```
+
+It comes up on <http://localhost:3001>. Podman and Docker both work - the Makefile picks
+whichever is installed, preferring podman, and `make demo CONTAINER=docker` overrides that.
+`podman compose` hands off to `podman-compose`; `docker compose` is built in. Plain
+`podman compose up -d --build` does the same thing if you would rather not go through make.
+
+The image is the deployment artifact: bun builds the assets, Go builds a static binary with
+the assets and views embedded, and the runtime stage is alpine plus that one file. The first
+build takes a few minutes; every one after it hits the layer cache.
+
+Configuration comes from an environment file, and `DEMO_ENV_FILE` picks which:
+
+```console
+$ make demo                              # .env.staging, the default
+$ DEMO_ENV_FILE=.env.local make demo     # read the caveat below first
+```
+
+Because the file is read by Compose rather than by the binary, the credentials stay on the
+host; nothing secret is baked into the image.
+
+### Why the container defaults to staging
+
+The auth service builds its whole discovery document from `APP_BASE_URL` - the issuer, and
+every endpoint hanging off it. A container configured against a local auth service is
+therefore told to reach `http://127.0.0.1:8000`, which inside a container is the container
+itself, and the token exchange fails with nothing listening.
+
+Staging has no such problem: its URLs are absolute and reachable from anywhere. For working
+against a local auth service, use `make dev` rather than Compose - the process runs on the
+host, where `127.0.0.1:8000` means what the discovery document says it means. If it has to
+be a container, give the auth service an `APP_BASE_URL` that the browser and the container
+both resolve to the same place, and register a matching `redirect_uri`.
+
+### Pointing at staging without a container
 
 ```console
 $ APP_ENV=staging make dev
@@ -119,7 +164,8 @@ render those templates directly.
 $ make build
 ```
 
-Builds in a container and drops a static binary in `_build/`. `views/` and the built assets
+Builds in a container and drops a static binary in `_build/`, for deploying the
+binary rather than the image. `make demo` builds the same image and runs it. `views/` and the built assets
 are embedded, so the binary is the whole artifact. Set `NODE_ENV=production` (the Dockerfile
 does) to serve assets from the built manifest rather than the vite dev server, and
 `COOKIE_SECURE=true` behind HTTPS.

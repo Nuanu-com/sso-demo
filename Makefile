@@ -1,7 +1,10 @@
-.PHONY: build dev test test-e2e setup
+.PHONY: build dev test test-e2e setup demo demo-logs demo-down
 
-# Prefer docker, fall back to podman. Override with: make build CONTAINER=podman
-CONTAINER ?= $(shell for c in docker podman; do command -v $$c >/dev/null 2>&1 && { echo $$c; break; }; done)
+# Whichever runtime is installed. Override with: make demo CONTAINER=docker
+CONTAINER ?= $(shell for c in podman docker; do command -v $$c >/dev/null 2>&1 && { echo $$c; break; }; done)
+
+# `podman compose` hands off to podman-compose; `docker compose` is built in.
+COMPOSE = $(CONTAINER) compose
 
 KNAME=$(shell uname -s |  tr '[:upper:]' '[:lower:]')
 
@@ -14,7 +17,7 @@ setup:
 	@echo "==> set SSO_CLIENT_ID and SSO_CLIENT_SECRET in .env.local, then: make dev"
 
 build:
-	@test -n "$(CONTAINER)" || { echo "make: no container runtime found - install docker or podman"; exit 1; }
+	@test -n "$(CONTAINER)" || { echo "make: no container runtime found - install podman or docker"; exit 1; }
 	@echo "==> using $(CONTAINER)"
 	@mkdir -p _build
 	@$(CONTAINER) build --build-arg GOOS=$(KNAME) -t sso-demo:builder .
@@ -25,6 +28,19 @@ build:
 
 dev:
 	@foreman s -f Procfile
+
+# The demo as it is deployed: built assets, one binary, no toolchain needed.
+# DEMO_ENV_FILE picks the environment; it defaults to .env.staging.
+demo:
+	@test -n "$(CONTAINER)" || { echo "make: no container runtime found - install podman or docker"; exit 1; }
+	@$(COMPOSE) up -d --build
+	@echo "==> http://localhost:3001"
+
+demo-logs:
+	@$(COMPOSE) logs -f
+
+demo-down:
+	@$(COMPOSE) down
 
 test:
 	@go test ./... -race

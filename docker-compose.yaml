@@ -1,0 +1,40 @@
+# Runs the demo the way it is deployed: one static binary with the views and the
+# built assets embedded in it. Nothing else - no database, no cache - because
+# the session lives in the process and everything else lives at the identity
+# provider.
+#
+# `make dev` is still the loop for working on the code. This is for showing it.
+
+services:
+  demo:
+    build:
+      context: .
+      # The image builds the assets with bun and the binary with Go, so the
+      # first build is slow and every one after it hits the layer cache.
+      dockerfile: Dockerfile
+    image: nuanu-sso-demo
+    container_name: nuanu-sso-demo
+
+    # Which environment the container is configured from. Staging by default:
+    # it needs no auth service running and no host networking to reach one.
+    #
+    #   DEMO_ENV_FILE=.env.local docker compose up   (see the README first)
+    env_file:
+      - ${DEMO_ENV_FILE:-.env.staging}
+
+    # The binary already listens on 0.0.0.0:3001 (see the Dockerfile's CMD); a
+    # published port would reach nothing if it only bound loopback.
+    ports:
+      - "3001:3001"
+
+    restart: unless-stopped
+
+    # wget is in alpine's busybox, so this needs nothing added to the image.
+    # The landing page renders without touching the identity provider, which is
+    # what makes it a health check rather than a reachability test.
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:3001/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
