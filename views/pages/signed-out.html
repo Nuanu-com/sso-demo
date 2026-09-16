@@ -1,0 +1,31 @@
+<section class="mx-auto grid max-w-2xl gap-6">
+  <div class="grid gap-2">
+    <span class="badge w-fit" data-variant="secondary">signed out</span>
+    <h1 class="text-2xl font-semibold tracking-tight">You are signed out</h1>
+    <p class="text-muted-foreground">
+      This app's session was destroyed, tokens included, and the identity provider cleared
+      its own cookie before sending you back here.
+    </p>
+  </div>
+
+  <div class="rounded-lg border border-border p-4 text-sm">
+    {{ if .StateVerified }}
+    <p><span class="badge" data-variant="outline">state verified</span>
+      The value returned with the logout matched the one this session sent.</p>
+    {{ else if .StateReturned }}
+    <p><span class="badge" data-variant="destructive">state mismatch</span>
+      A state came back that this session did not send. Harmless at logout, but worth noticing.</p>
+    {{ else }}
+    <p class="text-muted-foreground">No state came back with the logout redirect.</p>
+    {{ end }}
+  </div>
+
+  <p class="text-sm text-muted-foreground">
+    Tokens already issued are not revoked by logout - they are simply discarded here, which is
+    why they had to live server side in the first place.
+  </p>
+
+  <div>
+    <a href="/" class="btn" data-variant="primary">Start again</a>
+  </div>
+</section>

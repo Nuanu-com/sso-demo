@@ -1,0 +1,119 @@
+<section class="flex items-center gap-4">
+    {{ if .User.Picture }}
+    <img src="{{ .User.Picture }}" alt="" class="size-14 rounded-full object-cover border border-border">
+    {{ else }}
+    <span class="flex size-14 items-center justify-center rounded-full bg-muted text-lg font-medium">
+      {{ initials .User.Name .User.Email }}
+    </span>
+    {{ end }}
+
+  <div class="grid gap-1">
+    <h1 class="text-2xl font-semibold tracking-tight">{{ if .User.Name }}{{ .User.Name }}{{ else }}Signed in{{ end }}</h1>
+    <p class="text-sm text-muted-foreground">{{ .User.Email }}</p>
+  </div>
+</section>
+
+<!-- Access token lifetime. The countdown and the refresh button are the one
+     interactive part of the page, so they are the one island. -->
+<div class="mt-8" data-island="session-status" data-props="{{ props .SessionStatus }}">
+  <div class="rounded-lg border border-border p-4 text-sm text-muted-foreground">
+    Access token expires at {{ .Tokens.ExpiresAt }}.
+  </div>
+</div>
+
+<section class="mt-8 grid gap-6 lg:grid-cols-2">
+  <div class="card rounded-lg border border-border bg-card text-card-foreground">
+    <header class="p-6 gap-1.5">
+      <h2 class="font-semibold">Profile</h2>
+      <p class="text-sm text-muted-foreground">
+        From <code class="font-mono">/openid/userinfo</code>. Claims with no value are omitted by the
+        server rather than returned null, so a missing row means no data, not an error.
+      </p>
+    </header>
+
+    <div class="px-6 pb-6">
+      <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-[auto_1fr] text-sm">
+        <dt class="text-muted-foreground">sub</dt>
+        <dd class="font-mono break-all">{{ .User.Sub }}</dd>
+
+        {{ if .User.Name }}<dt class="text-muted-foreground">name</dt><dd>{{ .User.Name }}</dd>{{ end }}
+        {{ if .User.Email }}<dt class="text-muted-foreground">email</dt><dd class="break-all">{{ .User.Email }}</dd>{{ end }}
+        {{ if .User.PhoneNumber }}<dt class="text-muted-foreground">phone_number</dt><dd>{{ .User.PhoneNumber }}</dd>{{ end }}
+        {{ if .User.Birthdate }}<dt class="text-muted-foreground">birthdate</dt><dd>{{ .User.Birthdate }}</dd>{{ end }}
+        {{ if .User.Nationality }}<dt class="text-muted-foreground">nationality</dt><dd>{{ .User.Nationality }}</dd>{{ end }}
+      </dl>
+    </div>
+  </div>
+
+  <div class="card rounded-lg border border-border bg-card text-card-foreground">
+    <header class="p-6 gap-1.5">
+      <h2 class="font-semibold">Tokens</h2>
+      <p class="text-sm text-muted-foreground">
+        Held in this app's server-side session. Only a preview is rendered - a usable token has no
+        business being on a page.
+      </p>
+    </header>
+
+    <div class="px-6 pb-6">
+      <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-[auto_1fr] text-sm">
+        <dt class="text-muted-foreground">granted scope</dt>
+        <dd class="flex flex-wrap gap-1.5">
+          {{ range (fields .Tokens.Scope) }}<span class="badge" data-variant="secondary">{{ . }}</span>{{ end }}
+        </dd>
+
+        <dt class="text-muted-foreground">access_token</dt>
+        <dd class="font-mono break-all">{{ .Tokens.AccessTokenP }}</dd>
+
+        <dt class="text-muted-foreground">id_token</dt>
+        <dd class="font-mono break-all">{{ .Tokens.IDTokenP }}</dd>
+
+        <dt class="text-muted-foreground">refresh_token</dt>
+        <dd class="font-mono break-all">
+          {{ if .Tokens.HasRefresh }}{{ .Tokens.RefreshP }}{{ else }}<span class="text-muted-foreground">none issued</span>{{ end }}
+        </dd>
+
+        <dt class="text-muted-foreground">expires_at</dt>
+        <dd class="font-mono">{{ .Tokens.ExpiresAt }}</dd>
+
+        {{ if .Tokens.RefreshedAt }}
+        <dt class="text-muted-foreground">last refresh</dt>
+        <dd class="font-mono">{{ .Tokens.RefreshedAt }}</dd>
+        {{ end }}
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="card rounded-lg border border-border bg-card text-card-foreground">
+    <header class="p-6 gap-1.5">
+      <h2 class="font-semibold">id_token</h2>
+      <p class="text-sm text-muted-foreground">
+        Signed <span class="badge" data-variant="outline">{{ .Tokens.IDTokenAlg }}</span>.
+        Verified at the callback: signature, <code class="font-mono">iss</code>,
+        <code class="font-mono">aud</code>, <code class="font-mono">exp</code>, and the
+        <code class="font-mono">nonce</code> that binds it to that one sign-in.
+      </p>
+    </header>
+
+    <div class="px-6 pb-6">{{ template "claims" .IDClaims }}</div>
+  </div>
+
+  <div class="card rounded-lg border border-border bg-card text-card-foreground">
+    <header class="p-6 gap-1.5">
+      <h2 class="font-semibold">access_token</h2>
+      <p class="text-sm text-muted-foreground">
+        Always RS256, verified against the provider's JWKS. It carries
+        <code class="font-mono">sub</code> and <code class="font-mono">exp</code> and nothing else -
+        no email, no roles.
+      </p>
+    </header>
+
+    <div class="px-6 pb-6">{{ template "claims" .AccessClaims }}</div>
+  </div>
+</section>
+
+<details class="mt-6 rounded-lg border border-border p-4">
+  <summary class="cursor-pointer text-sm font-medium">Identity provider configuration</summary>
+  <div class="mt-4">{{ template "provider" .Provider }}</div>
+</details>

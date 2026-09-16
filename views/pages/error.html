@@ -1,0 +1,31 @@
+<section class="mx-auto grid max-w-2xl gap-6">
+  <div class="grid gap-2">
+    <span class="badge w-fit" data-variant="destructive">sign-in failed</span>
+    <h1 class="text-2xl font-semibold tracking-tight">{{ .Title }}</h1>
+  </div>
+
+  <div class="alert rounded-lg border border-border p-4">
+    <section class="grid gap-3 text-sm">
+      {{ if .Code }}
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-muted-foreground">error</span>
+        <code class="font-mono">{{ .Code }}</code>
+        {{ if .Status }}<span class="badge" data-variant="outline">HTTP {{ .Status }}</span>{{ end }}
+      </div>
+      {{ end }}
+
+      {{ if .Message }}
+      <p class="break-words text-muted-foreground">{{ .Message }}</p>
+      {{ end }}
+    </section>
+  </div>
+
+  <p class="text-sm text-muted-foreground">
+    Section 13 of <code class="font-mono">SSO_INTEGRATION.md</code> lists what each error code means.
+  </p>
+
+  <div class="flex gap-3">
+    <a href="/" class="btn" data-variant="outline">Back to the start</a>
+    <a href="/auth/login" class="btn" data-variant="primary">Try again</a>
+  </div>
+</section>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+
+  <title>Nuanu SSO Demo</title>
+
+  <!-- Basecoat's dark palette hangs off html.dark, so the class is set before
+       first paint rather than after the stylesheet has already drawn light. -->
+  <script>
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark");
+    }
+  </script>
+
+  {{ development_dependencies }}
+  {{vite_asset "assets/main.js"}}
+</head>
+
+<body class="bg-background text-foreground min-h-screen">
+  <header class="border-b border-border">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
+      <a href="/" class="flex items-center gap-2 font-semibold no-underline">
+        <span class="inline-block size-2 rounded-full bg-primary"></span>
+        Nuanu SSO Demo
+      </a>
+
+      <nav class="flex items-center gap-3 text-sm">
+        <span class="badge" data-variant="outline" title="APP_ENV">{{ app_env }}</span>
+
+        {{ if .User }}
+        <a href="/dashboard" class="text-muted-foreground no-underline hover:text-foreground">Dashboard</a>
+        <a href="/auth/logout" class="btn" data-variant="outline" data-size="sm">Sign out</a>
+        {{ else }}
+        <a href="/" class="text-muted-foreground no-underline hover:text-foreground">Overview</a>
+        {{ end }}
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-6 py-10">
+    {{embed}}
+  </main>
+
+  <footer class="mx-auto max-w-5xl px-6 pb-12 text-sm text-muted-foreground">
+    A relying party for Nuanu SSO. The flow it performs is documented in
+    <code class="font-mono">authentication/docs/SSO_INTEGRATION.md</code>.
+  </footer>
+</body>
+
+</html>

@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "basecoat-css";
+
+/* Tailwind scans these for class names; the islands are picked up from the
+   default source detection, the Go templates are not. */
+@source "../../views";

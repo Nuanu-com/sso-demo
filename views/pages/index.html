@@ -1,0 +1,59 @@
+<section class="grid gap-3">
+  <h1 class="text-3xl font-semibold tracking-tight">Sign in with Nuanu SSO</h1>
+  <p class="max-w-2xl text-muted-foreground">
+    This app holds no passwords. It delegates sign-in to the Nuanu identity provider over
+    OpenID Connect - authorization code with PKCE - and shows every value the flow produces
+    next to the step that produced it.
+  </p>
+</section>
+
+{{ if .Configured }}
+<div class="mt-8 flex flex-wrap items-center gap-3">
+  <a href="/auth/login" class="btn" data-variant="primary" data-size="lg">Sign in</a>
+
+  <a href="/auth/login?prompt=login" class="btn" data-variant="outline" data-size="lg"
+    title="Forces re-authentication even if an SSO session already exists">Force re-authentication</a>
+
+  <a href="/auth/login?prompt=none" class="btn" data-variant="ghost" data-size="lg"
+    title="Renders no UI: returns login_required when there is no SSO session">Probe silently</a>
+</div>
+{{ else }}
+<div class="alert mt-8 rounded-lg border border-destructive/50 bg-destructive/5 p-4" role="alert">
+  <h2 class="font-semibold">No SSO client configured</h2>
+  <section class="mt-2 grid gap-2 text-sm text-muted-foreground">
+    <p>
+      <code class="font-mono">SSO_CLIENT_ID</code> and <code class="font-mono">SSO_CLIENT_SECRET</code>
+      are empty. An SSO superuser registers a client for you; the redirect URI below has to be in
+      its <code class="font-mono">allowed_redirect_urls</code>, matched as an exact string.
+    </p>
+    <pre class="overflow-x-auto rounded-md bg-muted p-3 font-mono text-xs"><code>curl -X POST "{{ .Provider.BaseURL }}/api/v1/oauth_clients/" \
+  -H "Authorization: Bearer &lt;superuser_access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"client_name": "SSO Demo",
+       "allowed_redirect_urls": "{{ .Provider.RedirectURI }},{{ .Provider.PostLogoutURI }}"}'</code></pre>
+    <p>Put the returned id and secret in your <code class="font-mono">.env.local</code> and restart.</p>
+  </section>
+</div>
+{{ end }}
+
+<section class="mt-12 grid gap-4">
+  <h2 class="text-lg font-semibold">What happens when you click that</h2>
+
+  <ol class="grid gap-3">
+    {{ range $index, $step := .Checklist }}
+    <li class="flex gap-4 rounded-lg border border-border p-4">
+      <span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+        {{ add $index 1 }}
+      </span>
+      <div class="grid gap-1">
+        <p class="font-medium">{{ $step.Title }}</p>
+        <p class="text-sm text-muted-foreground">{{ $step.Body }}</p>
+      </div>
+    </li>
+    {{ end }}
+  </ol>
+</section>
+
+<div class="mt-12">
+  {{ template "provider" .Provider }}
+</div>

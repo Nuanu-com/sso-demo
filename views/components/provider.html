@@ -1,0 +1,64 @@
+{{ define "provider" }}
+<section class="card border border-border rounded-lg bg-card text-card-foreground">
+  <header class="p-6 gap-1.5">
+    <h2 class="font-semibold">Identity provider</h2>
+    <p class="text-sm text-muted-foreground">
+      {{ if .DiscoveryLive }}
+      Endpoints read from <a class="underline" href="{{ .DiscoveryURL }}">the discovery document</a>.
+      {{ else }}
+      The discovery document could not be read, so these are the documented defaults for
+      <code class="font-mono">{{ .BaseURL }}</code>. Sign-in will still be attempted.
+      {{ end }}
+    </p>
+  </header>
+
+  <div class="px-6 pb-6">
+    <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-[auto_1fr] text-sm">
+      <dt class="text-muted-foreground">issuer</dt>
+      <dd class="font-mono break-all">{{ .Issuer }}</dd>
+
+      <dt class="text-muted-foreground">authorization_endpoint</dt>
+      <dd class="font-mono break-all">{{ .AuthorizationEndpoint }}</dd>
+
+      <dt class="text-muted-foreground">token_endpoint</dt>
+      <dd class="font-mono break-all">{{ .TokenEndpoint }}</dd>
+
+      <dt class="text-muted-foreground">userinfo_endpoint</dt>
+      <dd class="font-mono break-all">{{ .UserinfoEndpoint }}</dd>
+
+      <dt class="text-muted-foreground">end_session_endpoint</dt>
+      <dd class="font-mono break-all">{{ .EndSessionEndpoint }}</dd>
+
+      <dt class="text-muted-foreground">jwks_uri</dt>
+      <dd class="font-mono break-all">{{ .JWKSURI }}</dd>
+
+      <dt class="text-muted-foreground">client_id</dt>
+      <dd class="font-mono break-all">{{ if .ClientID }}{{ .ClientID }}{{ else }}<span class="text-destructive">not set</span>{{ end }}</dd>
+
+      <dt class="text-muted-foreground">redirect_uri</dt>
+      <dd class="font-mono break-all">{{ .RedirectURI }}</dd>
+
+      <dt class="text-muted-foreground">post_logout_redirect_uri</dt>
+      <dd class="font-mono break-all">{{ .PostLogoutURI }}</dd>
+
+      <dt class="text-muted-foreground">scope</dt>
+      <dd class="flex flex-wrap gap-1.5">
+        {{ range .Scopes }}<span class="badge" data-variant="secondary">{{ . }}</span>{{ end }}
+      </dd>
+
+      <dt class="text-muted-foreground">id_token alg</dt>
+      <dd>
+        <span class="badge" data-variant="outline">{{ .IDTokenAlg }}</span>
+        <span class="text-muted-foreground">
+          {{ if eq .IDTokenAlg "HS256" }}verified with the client secret{{ else }}verified against the JWKS{{ end }}
+        </span>
+      </dd>
+
+      {{ if .DepartmentID }}
+      <dt class="text-muted-foreground">department_id</dt>
+      <dd class="font-mono break-all">{{ .DepartmentID }}</dd>
+      {{ end }}
+    </dl>
+  </div>
+</section>
+{{ end }}

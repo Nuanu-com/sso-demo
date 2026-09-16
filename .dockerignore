@@ -1,0 +1,10 @@
+.env*
+node_modules/
+dist/
+.git
+tmp
+Procfile
+_build
+.DS_Store
+*.log
+sso-demo
